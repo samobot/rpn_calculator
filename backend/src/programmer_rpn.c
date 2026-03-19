@@ -1,10 +1,21 @@
 #include "programmer_rpn.h"
 
+#define ALL_ONES ((uint64_t)~(0L)) // this generates all 1's
+
+void apply_ws_bitmask(programmer_rpn_t *s) {
+    uint64_t bitmask = ALL_ONES>>(64-s->word_size);
+    s->X_reg &= bitmask;
+    s->Y_reg &= bitmask;
+    s->Z_reg &= bitmask;
+    s->T_reg &= bitmask;
+}
+
 void programmer_rpn_init(programmer_rpn_t *s) {
     s->X_reg = 0;
     s->Y_reg = 0;
     s->Z_reg = 0;
     s->T_reg = 0;
+    s->word_size = PROGRAMMER_RPN_WS_64;
 }
 
 void programmer_rpn_push(programmer_rpn_t *s, uint64_t value) {
@@ -20,4 +31,44 @@ uint64_t programmer_rpn_pop(programmer_rpn_t *s) {
     s->Y_reg = s->Z_reg;
     s->Z_reg = s->T_reg;
     return tmp;
+}
+
+void programmer_rpn_set_ws(programmer_rpn_t *s, programmer_rpn_ws_t ws) {
+    switch(ws) {
+        case PROGRAMMER_RPN_WS_8:
+        case PROGRAMMER_RPN_WS_16:
+        case PROGRAMMER_RPN_WS_32:
+        case PROGRAMMER_RPN_WS_64:
+            s->word_size = ws;
+            apply_ws_bitmask(s);
+    }
+}
+
+void programmer_rpn_or(programmer_rpn_t *s) {
+    uint64_t x = programmer_rpn_pop(s);
+    uint64_t y = programmer_rpn_pop(s);
+    programmer_rpn_push(s, x|y);
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_ori(programmer_rpn_t *s, uint64_t e_reg) {
+    s->X_reg |= e_reg;
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_not(programmer_rpn_t *s) {
+    s->X_reg = ~(s->X_reg);
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_and(programmer_rpn_t *s) {
+    uint64_t x = programmer_rpn_pop(s);
+    uint64_t y = programmer_rpn_pop(s);
+    programmer_rpn_push(s, x&y);
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_andi(programmer_rpn_t *s, uint64_t e_reg) {
+    s->X_reg &= e_reg;
+    apply_ws_bitmask(s);
 }
