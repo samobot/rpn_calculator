@@ -16,7 +16,8 @@ TEST(ProgrammerRPN, InitializeToAllZeroes) {
 	CHECK_EQUAL(0, rpn.Y_reg);
 	CHECK_EQUAL(0, rpn.Z_reg);
 	CHECK_EQUAL(0, rpn.T_reg);
-	CHECK_EQUAL(64, rpn.word_size);
+	CHECK_EQUAL(PROGRAMMER_RPN_WS_64, rpn.word_size);
+	CHECK_EQUAL(PROGRAMMER_RPN_2S_COMP, rpn.sign_mode);
 };
 
 TEST(ProgrammerRPN, PushStack) {
@@ -91,4 +92,75 @@ TEST(ProgrammerRPN, AndImmediate) {
 	rpn.X_reg = 0b1100110011;
 	programmer_rpn_andi(&rpn, 0b1101010101);
 	CHECK_EQUAL(0b00010001, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, Xor) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1111111100110011;
+	rpn.Y_reg = 0b1111111101010101;
+	programmer_rpn_xor(&rpn);
+	CHECK_EQUAL(0b01100110, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, XorImmediate) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1100110011;
+	programmer_rpn_xori(&rpn, 0b1101010101);
+	CHECK_EQUAL(0b01100110, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, SetN) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1100000011; // check correct bit set with extra bits in n
+	rpn.Y_reg = 0b0101;
+	programmer_rpn_setn(&rpn);
+	CHECK_EQUAL(0b1101, rpn.X_reg);
+	CHECK_EQUAL(0, rpn.Y_reg);
+
+	rpn.X_reg = 0b00001111; // check no change with n too large
+	rpn.Y_reg = 0b0101;
+	programmer_rpn_setn(&rpn);
+	CHECK_EQUAL(0b0101, rpn.X_reg);
+	CHECK_EQUAL(0, rpn.Y_reg);	
+}
+
+TEST(ProgrammerRPN, SetNImmediate) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1100001010;
+	programmer_rpn_setni(&rpn, 5);
+	programmer_rpn_setni(&rpn, 16);
+	CHECK_EQUAL(0b00101010, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, ClrN) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1100000011;
+	rpn.Y_reg = 0b1111111111;
+	programmer_rpn_clrn(&rpn);
+	CHECK_EQUAL(0b11110111, rpn.X_reg);
+	CHECK_EQUAL(0, rpn.Y_reg);
+}
+
+TEST(ProgrammerRPN, ClrNImmediate) {
+	programmer_rpn_set_ws(&rpn, PROGRAMMER_RPN_WS_8);
+	rpn.X_reg = 0b1111111111;
+	programmer_rpn_clrni(&rpn, 3);
+	CHECK_EQUAL(0b11110111, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, RotateStack) {
+	rpn.X_reg = 1;
+	rpn.Y_reg = 2;
+	rpn.Z_reg = 3;
+	rpn.T_reg = 4;
+	programmer_rpn_rotate_down(&rpn);
+	CHECK_EQUAL(2, rpn.X_reg);
+	CHECK_EQUAL(3, rpn.Y_reg);
+	CHECK_EQUAL(4, rpn.Z_reg);
+	CHECK_EQUAL(1, rpn.T_reg);
+	programmer_rpn_rotate_up(&rpn);
+	CHECK_EQUAL(1, rpn.X_reg);
+	CHECK_EQUAL(2, rpn.Y_reg);
+	CHECK_EQUAL(3, rpn.Z_reg);
+	CHECK_EQUAL(4, rpn.T_reg);
 }
