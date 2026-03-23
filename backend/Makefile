@@ -2,6 +2,8 @@ BUILD_DIR := build
 SRC_DIR := src
 TEST_DIR := test
 
+# CXX_FLAGS = -std=c++23
+
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
@@ -18,15 +20,15 @@ debug:
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
-	g++ -c $< -o $@
+	g++ $(CXX_FLAGS) -c $< -o $@
 
 $(BUILD_DIR)/test/%.o: $(TEST_DIR)/%.cpp #$(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/test
-	g++ -c $< -o $@
+	g++ $(CXX_FLAGS) -c $< -o $@
 
 $(BUILD_DIR)/test_main: $(TEST_OBJS) $(OBJS)
 	@mkdir -p $(BUILD_DIR)
-	g++ -o $(BUILD_DIR)/test_main $^ -lCppUTest
+	g++ $(CXX_FLAGS) -o $(BUILD_DIR)/test_main $^ -lCppUTest
 
 test: $(BUILD_DIR)/test_main
 	$(BUILD_DIR)/test_main
