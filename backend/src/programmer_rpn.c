@@ -1,5 +1,7 @@
 #include "programmer_rpn.h"
 
+#include <cstdint>
+#include <stdint.h>
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -340,21 +342,14 @@ void programmer_rpn_dwmul(programmer_rpn_t *s) {
         uint64_t xhigh = (s->X_reg & (ALL_ONES << 32)) >> 32;
         uint64_t ylow = s->Y_reg & (ALL_ONES >> 32);
         uint64_t yhigh = (s->Y_reg & (ALL_ONES << 32)) >> 32;
-        printf("%16" PRIX64 "\n", xlow);
-        printf("%16" PRIX64 "\n", xhigh);
-        printf("%16" PRIX64 "\n", ylow);
-        printf("%16" PRIX64 "\n", yhigh);
+
         uint64_t xy = xlow*yhigh;
         uint64_t yx = ylow*xhigh;
         uint64_t reshigh = xhigh * yhigh + (xy >> 32) + (yx >> 32);
         uint64_t reslow = xlow * ylow;
         if(__builtin_add_overflow(reslow, xy << 32, &reslow)) reshigh++;
         if(__builtin_add_overflow(reslow, yx << 32, &reslow)) reshigh++;
-        printf("%16" PRIX64 "\n", reslow);
-        printf("%16" PRIX64 "\n", reshigh);
-        printf("%16" PRIX64 "\n", 0x3979B64889472ACC);
-        printf("%16" PRIX64 "\n", 0x0EB048D10B296099);
-        if(s->sign_mode == PROGRAMMER_RPN_2S_COMP && negative) {
+        if(negative) {
             reslow = ~reslow;
             reshigh = ~reshigh;
             if(__builtin_add_overflow(reslow, 1, &reslow)) reshigh++;
@@ -363,8 +358,6 @@ void programmer_rpn_dwmul(programmer_rpn_t *s) {
         s->Y_reg = reshigh;
         return;
     }
-    //uint64_t x = programmer_rpn_pop(s);
-    //uint64_t y = programmer_rpn_pop(s);
     uint64_t res = 0;
     if(s->sign_mode == PROGRAMMER_RPN_2S_COMP) {
         sign_extend(&s->X_reg, s->word_size);
@@ -373,13 +366,35 @@ void programmer_rpn_dwmul(programmer_rpn_t *s) {
     res = s->X_reg*s->Y_reg;
     s->Y_reg = res >> s->word_size;
     s->X_reg = res;
-    //programmer_rpn_push(s, res >> s->word_size);
-    //programmer_rpn_push(s, res);
     apply_ws_bitmask(s);
 }
 
 void programmer_rpn_dwmuli(programmer_rpn_t *s, uint64_t e_reg) {
     if(s->word_size == PROGRAMMER_RPN_WS_64) {
+        uint8_t negative = 0;
+        if(s->sign_mode == PROGRAMMER_RPN_2S_COMP) {
+            negative = !!((s->X_reg & (ALL_ONES << 63)) ^ (s->Y_reg & (ALL_ONES << 63)));
+            if(s->X_reg & (ALL_ONES << 63)) s->X_reg = ((~s->X_reg) + 1);
+            if(e_reg & (ALL_ONES << 63)) e_reg = ((~e_reg) + 1);
+        }
+        uint64_t xlow = s->X_reg & (ALL_ONES >> 32);
+        uint64_t xhigh = (s->X_reg & (ALL_ONES << 32)) >> 32;
+        uint64_t ylow = e_reg & (ALL_ONES >> 32);
+        uint64_t yhigh = (e_reg & (ALL_ONES << 32)) >> 32;
+
+        uint64_t xy = xlow*yhigh;
+        uint64_t yx = ylow*xhigh;
+        uint64_t reshigh = xhigh * yhigh + (xy >> 32) + (yx >> 32);
+        uint64_t reslow = xlow * ylow;
+        if(__builtin_add_overflow(reslow, xy << 32, &reslow)) reshigh++;
+        if(__builtin_add_overflow(reslow, yx << 32, &reslow)) reshigh++;
+        if(negative) {
+            reslow = ~reslow;
+            reshigh = ~reshigh;
+            if(__builtin_add_overflow(reslow, 1, &reslow)) reshigh++;
+        }
+        s->X_reg = reshigh;
+        programmer_rpn_push(s, reslow);
         return;
     }
     uint64_t x = programmer_rpn_pop(s);
@@ -391,5 +406,31 @@ void programmer_rpn_dwmuli(programmer_rpn_t *s, uint64_t e_reg) {
     res = x*e_reg;
     programmer_rpn_push(s, res >> s->word_size);
     programmer_rpn_push(s, res);
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_mod(programmer_rpn_t *s) {
+    uint64_t x = programmer_rpn_pop(s);
+    uint64_t y = programmer_rpn_pop(s);
+    if(s->sign_mode == PROGRAMMER_RPN_2S_COMP) {
+        sign_extend(&x, s->word_size);
+        sign_extend(&y, s->word_size);
+        uint64_t result = (uint64_t)(((((int64_t)y) % ((int64_t)x)) + (int64_t)(x)) % (int64_t)x);
+        programmer_rpn_push(s, result);
+    } else {
+        programmer_rpn_push(s, y % x);
+    }
+    apply_ws_bitmask(s);
+}
+
+void programmer_rpn_modi(programmer_rpn_t *s, uint64_t e_reg) {
+    if(s->sign_mode == PROGRAMMER_RPN_2S_COMP) {
+        sign_extend(&s->X_reg, s->word_size);
+        sign_extend(&e_reg, s->word_size);
+        uint64_t result = (uint64_t)(((((int64_t)s->X_reg) % ((int64_t)e_reg)) + (int64_t)(e_reg)) % (int64_t)e_reg);
+        programmer_rpn_push(s, result);
+    } else {
+        s->X_reg %= e_reg;
+    }
     apply_ws_bitmask(s);
 }

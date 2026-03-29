@@ -425,10 +425,61 @@ TEST(ProgrammerRPN, DoubleWordMul64) {
 	CHECK_EQUAL(0x0EB048D10B296099, rpn.Y_reg);
 	CHECK_EQUAL(0x3979B64889472ACC, rpn.X_reg);
 
+
 	rpn.X_reg = -789347989798098323; // 0x0AF453D088159593 positive same number
 	rpn.Y_reg = 5739218739873934922; // 0x4FA5CD0946736E4A
+	__int128 result = (__int128)-789347989798098323 * 5739218739873934922;
 	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_2S_COMP);
 	programmer_rpn_dwmul(s);
-	CHECK_EQUAL(0x5731297C00749982, rpn.X_reg);
-	CHECK_EQUAL(0x4C3D4EEBDA546085, rpn.Y_reg);
+	CHECK_EQUAL((uint64_t) result, rpn.X_reg);
+	CHECK_EQUAL((uint64_t) (result >> 64), rpn.Y_reg);
+}
+
+TEST(ProgrammerRPN, DoubleWordMul64Immediate) {
+	programmer_rpn_set_ws(s, PROGRAMMER_RPN_WS_64);
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_UNSIGNED);
+	//rpn.X_reg = 0b0110101111011011110110100000010110100111100100001000000010101110;
+	//rpn.Y_reg = 0b0010001011011100111011111000101101000101001001000011111000001010;
+	rpn.X_reg = 0x6BDBDA05A79080AE;
+	programmer_rpn_dwmuli(s, 0x22DCEF8B45243E0A);
+	CHECK_EQUAL(0x0EB048D10B296099, rpn.Y_reg);
+	CHECK_EQUAL(0x3979B64889472ACC, rpn.X_reg);
+
+
+	rpn.X_reg = -789347989798098323; // 0x0AF453D088159593 positive same number
+	rpn.Y_reg = 0xBABECAFE;
+	__int128 result = (__int128)-789347989798098323 * 5739218739873934922;
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_2S_COMP);
+	programmer_rpn_dwmuli(s, 5739218739873934922);
+	CHECK_EQUAL((uint64_t) result, rpn.X_reg);
+	CHECK_EQUAL((uint64_t) (result >> 64), rpn.Y_reg);
+	CHECK_EQUAL(0xBABECAFE, rpn.Z_reg);
+}
+
+TEST(ProgrammerRPN, Mod) {
+	programmer_rpn_set_ws(s, PROGRAMMER_RPN_WS_16);
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_UNSIGNED);
+	rpn.X_reg = 9723;
+	rpn.Y_reg = 49547;
+	programmer_rpn_mod(s);
+	CHECK_EQUAL(932, rpn.X_reg);
+
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_2S_COMP);
+	rpn.X_reg = 9723;
+	rpn.Y_reg = 49547;
+	programmer_rpn_mod(s);
+	CHECK_EQUAL(3457, rpn.X_reg);
+}
+
+TEST(ProgrammerRPN, ModImmediate) {
+	programmer_rpn_set_ws(s, PROGRAMMER_RPN_WS_16);
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_UNSIGNED);
+	rpn.X_reg = 49547;
+	programmer_rpn_modi(s, 9723);
+	CHECK_EQUAL(932, rpn.X_reg);
+
+	programmer_rpn_set_signmode(s, PROGRAMMER_RPN_2S_COMP);
+	rpn.X_reg = 49547;
+	programmer_rpn_modi(s, 9723);
+	CHECK_EQUAL(3457, rpn.X_reg);
 }

@@ -1,6 +1,7 @@
 #ifndef PROGRAMMER_RPN_H
 #define PROGRAMMER_RPN_H
 
+#include <cstdint>
 #include <stdint.h>
 
 typedef enum {
@@ -71,5 +72,7 @@ void programmer_rpn_div(programmer_rpn_t *s);
 void programmer_rpn_divi(programmer_rpn_t *s, uint64_t e_reg);
 void programmer_rpn_dwmul(programmer_rpn_t *s);
 void programmer_rpn_dwmuli(programmer_rpn_t *s, uint64_t e_reg);
+void programmer_rpn_mod(programmer_rpn_t *s);
+void programmer_rpn_modi(programmer_rpn_t *s, uint64_t e_reg);
 
 #endif
