@@ -260,6 +260,10 @@ TEST(ProgrammerRPN, LeftRoll) {
 	CHECK_EQUAL(0b01110101, rpn.X_reg);
 	programmer_rpn_lroll(s);
 	CHECK_EQUAL(0b11101010, rpn.X_reg);
+	programmer_rpn_set_ws(s, PROGRAMMER_RPN_WS_64);
+	rpn.X_reg = 0x8000000000000000;
+	programmer_rpn_lroll(s);
+	CHECK_EQUAL(1, rpn.X_reg);
 }
 
 TEST(ProgrammerRPN, RightRoll) {
@@ -269,6 +273,10 @@ TEST(ProgrammerRPN, RightRoll) {
 	CHECK_EQUAL(0b01110101, rpn.X_reg);
 	programmer_rpn_rroll(s);
 	CHECK_EQUAL(0b10111010, rpn.X_reg);
+	programmer_rpn_set_ws(s, PROGRAMMER_RPN_WS_64);
+	rpn.X_reg = 1;
+	programmer_rpn_rroll(s);
+	CHECK_EQUAL(0x8000000000000000, rpn.X_reg);
 }
 
 TEST(ProgrammerRPN, LeftRollN) {

@@ -1,7 +1,6 @@
 #ifndef PROGRAMMER_RPN_H
 #define PROGRAMMER_RPN_H
 
-#include <cstdint>
 #include <stdint.h>
 
 typedef enum {

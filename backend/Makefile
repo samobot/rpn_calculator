@@ -10,13 +10,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp,$(BUILD_DIR)/test/%.o,$(TEST_SRCS))
 
-.PHONY: debug
-
-debug:
-	echo $(SRCS)
-	echo $(OBJS)
-	echo $(TEST_SRCS)
-	echo $(TEST_OBJS)
+.PHONY: test
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)

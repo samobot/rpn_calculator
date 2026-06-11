@@ -1,9 +1,6 @@
 #include "programmer_rpn.h"
 
-#include <cstdint>
 #include <stdint.h>
-#include <stdio.h>
-#include <inttypes.h>
 
 #define ALL_ONES ((uint64_t)~(0L)) // this generates all 1's
 
@@ -217,13 +214,13 @@ void programmer_rpn_rshiftni(programmer_rpn_t *s, uint64_t e_reg) {
 }
 
 void programmer_rpn_lroll(programmer_rpn_t *s) {
-    uint8_t topbit = !!(s->X_reg & (1<<(s->word_size-1)));
+    uint8_t topbit = !!(s->X_reg & (((uint64_t)1)<<(s->word_size-1)));
     s->X_reg = (s->X_reg << 1) | topbit;
     apply_ws_bitmask(s);
 }
 
 void programmer_rpn_rroll(programmer_rpn_t *s) {
-    uint8_t bottombit = s->X_reg & 1;
+    uint64_t bottombit = s->X_reg & 1;
     s->X_reg = (s->X_reg >> 1) | (bottombit << (s->word_size-1));
     apply_ws_bitmask(s);
 }
