@@ -1,5 +1,5 @@
-#ifndef AND_OR_DECOMP
-#define AND_OR_DECOMP
+#ifndef AND_OR_DECOMP_H
+#define AND_OR_DECOMP_H
 
 #include <stdint.h>
 
