@@ -6,7 +6,7 @@ typedef enum {
     BACKBONE_BASE_BIN = 2,
     BACKBONE_BASE_OCT = 8,
     BACKBONE_BASE_DEC = 10,
-    BACKBONE_BASE_ASCII = 0
+    BACKBONE_BASE_ASCII = 256
 } backbone_base_t;
 
 typedef enum {

@@ -43,7 +43,8 @@ void backbone_key(backbone_t *backbone, backbone_key_t key) {
             backbone->base = BACKBONE_BASE_OCT;
             break;
         case BACKBONE_KEY_HEX:
-            backbone->base = BACKBONE_BASE_HEX;
+            if(backbone->shift == BACKBONE_SHIFT_UP) backbone->base = BACKBONE_BASE_ASCII;
+            else backbone->base = BACKBONE_BASE_HEX;
             break;
         case BACKBONE_KEY_DEC:
             backbone->base = BACKBONE_BASE_DEC;
